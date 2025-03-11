@@ -49,28 +49,7 @@ if (string.IsNullOrEmpty(key) || string.IsNullOrEmpty(issuer) || string.IsNullOr
 }
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
 
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
 
-            ValidIssuer = builder.Configuration["Jwt:Issuer"],
-            ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])),
-            RoleClaimType = "role"
-        };
-    });
-
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy("client", policy => policy.RequireClaim("role", "client"));
-    options.AddPolicy("freelancer", policy => policy.RequireClaim("role", "freelancer"));
-});
 
 
 // ? Configuração do Swagger
@@ -110,6 +89,29 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            
+
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])),
+            
+        };
+    });
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("client", policy => policy.RequireClaim("role", "client"));
+    options.AddPolicy("freelancer", policy => policy.RequireClaim("role", "freelancer"));
+});
+
 
 var app = builder.Build();
 
@@ -123,7 +125,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 // ? Middlewares de autenticação e autorização (ORDEM CORRETA)
-app.UseAuthentication();
+
 app.UseAuthorization();
 
 app.MapControllers();
